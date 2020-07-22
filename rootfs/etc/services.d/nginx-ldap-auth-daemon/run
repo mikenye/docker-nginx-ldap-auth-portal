@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv /usr/bin/env bash
+# shellcheck shell=bash
+
+# No dependencies
+
+set -eo pipefail
+
+/opt/nginx-ldap-auth/nginx-ldap-auth-daemon.py \
+    2>&1 | stdbuf -o0 awk '{print "[nginx-ldap-auth-daemon] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
