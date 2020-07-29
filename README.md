@@ -49,8 +49,8 @@ You can then point your browser at <https://dockerhost:8443/>, and with any luck
 | `NGINX_PATH_SSL_CERTIFICATE_KEY` | The path (with respect to the container) to the SSL certificate's key (Required) |
 | `NGINX_PATH_SSL_CERTIFICATE` | The path (with respect to the container) to the SSL certificate (Required) |
 | `NGINX_SERVER_NAME` | The server name (should match what's set in the SSL certificate) (Required) |
-| `PROTECTED_BACKEND_HOST` | The protected backend service's hostname (Required) |
 | `PROTECTED_BACKEND_HOST` | The protected backend web server hostname (Required) |
+| `PROTECTED_BACKEND_PORT` | The protected backend web server's TCP port (Required) |
 | `TZ` | Container's local timezone in ["TZ database name" format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (Optional, default: `UTC`) |
 
 ## Ports
