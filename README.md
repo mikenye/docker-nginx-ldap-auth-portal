@@ -1,6 +1,6 @@
 # mikenye/nginx-ldap-auth-portal
 
-A multi-architecture (`linux/amd64`, `linux/arm/v7`, `linux/arm64`) Docker image that implement [nginx](http://nginx.org) as a reverse proxy, providing [basic LDAP authentication](https://www.nginx.com/blog/nginx-plus-authenticate-users/) before serving the protected backend resource.
+A multi-architecture (`linux/amd64`, `linux/arm/v7`, `linux/arm64`) Docker image that implements [nginx](http://nginx.org) as a reverse proxy, providing [basic LDAP authentication](https://www.nginx.com/blog/nginx-plus-authenticate-users/) before serving the protected backend resource.
 
 Useful where you just need a simple method to place LDAP authentication in front of a basic web service.
 
