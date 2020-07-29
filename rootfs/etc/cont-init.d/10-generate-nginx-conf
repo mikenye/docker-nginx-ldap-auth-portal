@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv /usr/bin/env bash
+#!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
 NGINX_CACHE_DIR="/opt/nginx/cache"
@@ -7,22 +7,45 @@ mkdir -p "$NGINX_CACHE_DIR"
 chown -R www-data "$NGINX_CACHE_DIR"
 
 {
-echo <<< EOL
+cat << EOF
 user www-data;
 error_log /dev/stdout $NGINX_ERROR_LOG_LEVEL;
+events { }
+worker_processes auto;
 http {
+
     access_log /dev/stdout;
     proxy_cache_path $NGINX_CACHE_DIR  keys_zone=auth_cache:10m;
+
     upstream backend {
-        server 127.0.0.1:9000;
+        server $PROTECTED_BACKEND_HOST:$PROTECTED_BACKEND_PORT;
     }
+
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 10m;
+
     server {
-        listen 8081;
+
+        listen                      443 ssl;
+        server_name                 $NGINX_SERVER_NAME;
+        keepalive_timeout           70;
+        ssl_certificate             $NGINX_PATH_SSL_CERTIFICATE;
+        ssl_certificate_key         $NGINX_PATH_SSL_CERTIFICATE_KEY;
+        ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers                 HIGH:!aNULL:!MD5;
+
         # Protected application
         location / {
             auth_request /auth-proxy;
-            error_page 401 =200 /login;
+            error_page 403 =200 /auth-proxy;
+
+            proxy_http_version      1.1;
+            proxy_set_header        Host \$host;
+            proxy_set_header        X-Real-IP \$remote_addr;
+            proxy_ssl_verify        off;
+
             proxy_pass http://backend/;
+
         }
 
         location /login {
@@ -38,19 +61,23 @@ http {
             proxy_cache auth_cache;
             proxy_cache_valid 200 10m;
             proxy_cache_key "\$http_authorization\$cookie_nginxauth";
-            proxy_set_header X-Ldap-URL      "ldap://example.com";
-            #proxy_set_header X-Ldap-Starttls "true";
-            proxy_set_header X-Ldap-BaseDN   "cn=Users,dc=test,dc=local";
-            proxy_set_header X-Ldap-BindDN   "cn=root,dc=test,dc=local";
-            proxy_set_header X-Ldap-BindPass "secret";
-            proxy_set_header X-CookieName "nginxauth";
-            proxy_set_header Cookie nginxauth=\$cookie_nginxauth;
-            #proxy_set_header X-Ldap-Template "(sAMAccountName=%(username)s)";
-            #proxy_set_header X-Ldap-DisableReferrals "true";
-            #proxy_set_header X-Ldap-Realm    "Restricted";
+            proxy_set_header X-Ldap-URL      "$LDAP_URL";
+            proxy_set_header X-Ldap-Starttls "$LDAP_STARTTLS";
+            proxy_set_header X-Ldap-BaseDN   "$LDAP_BASE_DN";
+            proxy_set_header X-Ldap-BindDN   "$LDAP_BIND_DN";
+            proxy_set_header X-Ldap-BindPass "$LDAP_BIND_PW";
+
+            # following two lines commented out to use HTTP Basic auth
+            #proxy_set_header X-CookieName "nginxauth";
+            #proxy_set_header Cookie nginxauth=\$cookie_nginxauth;
+            # -----
+
+            proxy_set_header X-Ldap-Template "$LDAP_SEARCH";
+            proxy_set_header X-Ldap-DisableReferrals "$LDAP_DISABLE_REFERRALS";
+            proxy_set_header X-Ldap-Realm    "$HTTP_AUTH_REALM";
         }
 
     }
 }
-EOL
+EOF
 } > /etc/nginx/nginx.conf
