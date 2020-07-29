@@ -59,7 +59,7 @@ The nginx instance in the container listens on TCP port `443`.
 
 ## Logging
 
-* All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
+All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
 
 ## Getting help
 
